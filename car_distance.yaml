@@ -12,35 +12,35 @@ template:
         event_type: homeassistant_started
     sensor:
       - name: "Car trip distance"
-        state: >-                                                                     ## Constants to edit
-          {% set bt_mac =  'XX:XX:XX:XX:XX:XX'  %}                                    ## Car BT device MAC address (uppercase with :)
-          {% set bt_connection_sensor_1 = 'sensor.phone_1_bluetooth_connection' %}    ## Mobile app BT connections sensor of 1st device tracker
-          {% set phone_owner_id_1 = "Phone 1" %}                                      ## 1st trigger name (has to be the same as in trigger entry)
-          {% set bt_connection_sensor_2 = 'sensor.phone_2_bluetooth_connection' %}    ## Mobile app BT connections sensor of 2nd device tracker
-          {% set phone_owner_id_2 = "Phone 2" %}                                      ## 2nd trigger name (has to be the same as in trigger entry)
-          {% set distance_sensor_id = 'sensor.car_trip_distance' %}                   ## This sensor's own entity_id
+        state: >-                                                                     {# Constants to edit #}
+          {% set bt_mac =  'XX:XX:XX:XX:XX:XX'  %}                                    {# Car BT device MAC address (uppercase with :) #}
+          {% set bt_connection_sensor_1 = 'sensor.phone_1_bluetooth_connection' %}    {# Mobile app BT connections sensor of 1st device tracker #}
+          {% set phone_owner_id_1 = "Phone 1" %}                                      {# 1st trigger name (has to be the same as in trigger entry) #}
+          {% set bt_connection_sensor_2 = 'sensor.phone_2_bluetooth_connection' %}    {# Mobile app BT connections sensor of 2nd device tracker #}
+          {% set phone_owner_id_2 = "Phone 2" %}                                      {# 2nd trigger name (has to be the same as in trigger entry) #}
+          {% set distance_sensor_id = 'sensor.car_trip_distance' %}                   {# This sensor's own entity_id #}
 
-          ## Check which phone changed location and is connected to cars BT
+          {# Check which phone changed location and is connected to cars BT #}
           {% if ((bt_mac in state_attr(bt_connection_sensor_1, 'connected_paired_devices')) and (trigger.id == phone_owner_id_1)) 
              or ((bt_mac in state_attr(bt_connection_sensor_2, 'connected_paired_devices')) and not (bt_mac in state_attr(bt_connection_sensor_1, 'connected_paired_devices')) and (trigger.id == phone_owner_id_2))  %}
 
-          ## Calculate position delta   
+          {# Calculate position delta #}
             {% set delta_lon = (trigger.from_state.attributes.longitude | float(0) - trigger.to_state.attributes.longitude | float (0)) | round(7) %}
             {% set delta_lat = (trigger.from_state.attributes.latitude  | float(0) - trigger.to_state.attributes.latitude  | float (0)) | round(7) %}
             {% set delta_h =  ((trigger.from_state.attributes.altitude  | float(0) - trigger.to_state.attributes.altitude  | float (0)) /1000) | round(5) %}
 
-          ## Calculate rhumb line distance in horizontal plane    
+          {# Calculate rhumb line distance in horizontal plane #}
             {% set q = cos(pi / 180 * trigger.to_state.attributes.latitude | float(0) ) %}
             {% set horizontal = (sqrt(delta_lat**2 + (q**2 * delta_lon**2)) * 1.852 * 60) | round(7) %}
 
-          ## Account for slope
+          {# Account for slope #}
             {% if horizontal | float(0) < 0.003 %}
               {{ (float(states(distance_sensor_id),0) + horizontal) | round(3) }}
             {% else %}
               {{ (float(states(distance_sensor_id),0) + (horizontal/cos(atan(delta_h/horizontal)))) | round(3) }}
             {% endif %}
 
-          ## Reset the sensor to 0 on startup and template reload. Please use utility_meter to store total distance travelled.
+          {# Reset the sensor to 0 on startup and template reload. Please use utility_meter to store total distance travelled. #}
           {% else %}
             {{float(states(distance_sensor_id),0)}}
           {% endif %}
