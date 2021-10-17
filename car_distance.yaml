@@ -22,7 +22,7 @@ template:
 
           ## Check which phone changed location and is connected to cars BT
           {% if ((bt_mac in state_attr(bt_connection_sensor_1, 'connected_paired_devices')) and (trigger.id == phone_owner_id_1)) 
-             or ((bt_mac in state_attr(bt_connection_sensor_2, 'connected_paired_devices')) and (trigger.id == phone_owner_id_2))  %}
+             or ((bt_mac in state_attr(bt_connection_sensor_2, 'connected_paired_devices')) and not (bt_mac in state_attr(bt_connection_sensor_1, 'connected_paired_devices')) and (trigger.id == phone_owner_id_2))  %}
 
           ## Calculate position delta   
             {% set delta_lon = (trigger.from_state.attributes.longitude | float(0) - trigger.to_state.attributes.longitude | float (0)) | round(7) %}
