@@ -1,5 +1,4 @@
 template:
-  sensor:
   - trigger:
       - platform: state                         # Device tracker setup
         entity_id: device_tracker.phone_1       # Id of 1st device_tracker entity
